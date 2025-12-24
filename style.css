@@ -1,0 +1,52 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+}
+
+.login-card {
+  max-width: 360px;
+  background: #fff;
+  padding: 20px;
+  margin: 15vh auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
+}
+
+input, textarea, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #000;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+}
+
+header {
+  background: #000;
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+section {
+  padding: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+}
