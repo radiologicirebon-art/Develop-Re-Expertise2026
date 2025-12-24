@@ -1,23 +1,208 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login Re-Expertise Radiologi</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radiologi | Re-Expertise PRO</title>
+
+<style>
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef1f4}
+.card{background:#fff;padding:18px;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.1);margin-bottom:15px}
+.center{max-width:420px;margin:12vh auto}
+input,textarea,button,select{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ccc;font-size:14px}
+button{background:#000;color:#fff;border:none;font-weight:bold}
+header{background:#000;color:#fff;padding:15px}
+header h3{margin:0;font-size:16px}
+header small{color:#bbb}
+section{padding:15px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid #ccc;padding:6px}
+.status-baru{color:#d35400;font-weight:bold}
+.status-diproses{color:#2980b9;font-weight:bold}
+.status-selesai{color:#27ae60;font-weight:bold}
+.hidden{display:none}
+.footer{text-align:center;font-size:11px;color:#777;padding:10px}
+</style>
 </head>
+
 <body>
 
-<div class="login-card">
-  <h2>Radiologi<br>Permintaan Re-Expertise</h2>
-
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-
-  <p id="error"></p>
+<!-- LOGIN -->
+<div id="loginPage" class="card center">
+<h3 style="text-align:center">INSTALASI RADIOLOGI<br><small>Permintaan Re-Expertise</small></h3>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">LOGIN</button>
+<p id="loginError" style="color:red;text-align:center"></p>
 </div>
 
-<script src="app.js"></script>
+<!-- DASHBOARD -->
+<div id="dashboardPage" class="hidden">
+<header>
+<h3>Dashboard Re-Expertise Radiologi</h3>
+<small>Monitoring & Kendali Permintaan</small><br><br>
+<button onclick="logout()">Logout</button>
+</header>
+
+<section>
+<div class="card">
+<b>Ringkasan Status</b><br>
+Baru: <span id="jBaru">0</span> |
+Diproses: <span id="jProses">0</span> |
+Selesai: <span id="jSelesai">0</span>
+</div>
+</section>
+
+<!-- FILTER & EXPORT -->
+<section>
+<div class="card">
+<b>Filter & Export</b>
+<select id="bulan">
+<option value="">Semua Bulan</option>
+<option value="01">Jan</option><option value="02">Feb</option>
+<option value="03">Mar</option><option value="04">Apr</option>
+<option value="05">Mei</option><option value="06">Jun</option>
+<option value="07">Jul</option><option value="08">Agu</option>
+<option value="09">Sep</option><option value="10">Okt</option>
+<option value="11">Nov</option><option value="12">Des</option>
+</select>
+<input id="tahun" placeholder="Tahun (contoh: 2025)">
+<button onclick="exportExcel()">Download Excel</button>
+</div>
+</section>
+
+<!-- FORM USER -->
+<section id="formSection">
+<div class="card">
+<b>Form Permintaan Re-Expertise</b>
+<input id="nama" placeholder="Nama Pasien">
+<input id="rm" placeholder="No RM">
+<input id="unit" placeholder="Ranap / Asal Unit">
+<textarea id="permintaan" placeholder="Permintaan Re-Expertise"></textarea>
+<button onclick="simpan()">Simpan & Kirim WhatsApp</button>
+</div>
+</section>
+
+<!-- TABEL -->
+<section>
+<div class="card">
+<b>Monitoring Permintaan</b>
+<table>
+<thead>
+<tr>
+<th>No</th>
+<th>Nama</th>
+<th>Unit</th>
+<th>Permintaan</th>
+<th>Jam Permintaan</th>
+<th>Jam Selesai</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="tabel"></tbody>
+</table>
+</div>
+</section>
+
+<div class="footer">
+© Instalasi Radiologi – Sistem Re-Expertise PRO
+</div>
+</div>
+
+<script>
+const DB="https://develop-re-expertise2026-default-rtdb.asia-southeast1.firebasedatabase.app/data";
+let role="";
+
+function login(){
+if(username.value==="Ranap" && password.value==="rsmp11") role="user";
+else if(username.value==="201708073" && password.value==="Papamama00") role="admin";
+else return loginError.innerText="Login gagal";
+loginPage.classList.add("hidden");
+dashboardPage.classList.remove("hidden");
+if(role==="admin") formSection.style.display="none";
+load();
+}
+
+function logout(){location.reload()}
+
+function simpan(){
+const now=new Date();
+const data={
+nama:nama.value,
+rm:rm.value,
+unit:unit.value,
+permintaan:permintaan.value,
+jam:now.toLocaleString(),
+bulan:(now.getMonth()+1).toString().padStart(2,"0"),
+tahun:now.getFullYear(),
+status:"Baru",
+selesai:"-"
+};
+fetch(DB+".json",{method:"POST",body:JSON.stringify(data)}).then(()=>{
+window.open(`https://wa.me/6285156868857?text=Halo, ada Permintaan Re-Expertise dari ${data.unit} atas nama ${data.nama}.`,"_blank");
+nama.value=rm.value=unit.value=permintaan.value="";
+load();
+});
+}
+
+function update(id,status,nama,unit){
+const selesai=new Date().toLocaleString();
+fetch(`${DB}/${id}.json`,{
+method:"PATCH",
+body:JSON.stringify({status:status,selesai:selesai})
+}).then(()=>{
+if(status==="Selesai"){
+window.open(`https://wa.me/6285156868857?text=Permintaan Re-Expertise pasien ${nama} dari ${unit} telah SELESAI.`,"_blank");
+}
+load();
+});
+}
+
+function load(){
+fetch(DB+".json").then(r=>r.json()).then(d=>{
+let no=1,baru=0,proses=0,selesai=0;
+tabel.innerHTML="";
+for(let i in d){
+if(d[i].status==="Baru") baru++;
+if(d[i].status==="Diproses") proses++;
+if(d[i].status==="Selesai") selesai++;
+tabel.innerHTML+=`
+<tr>
+<td>${no++}</td>
+<td>${d[i].nama}</td>
+<td>${d[i].unit}</td>
+<td>${d[i].permintaan}</td>
+<td>${d[i].jam}</td>
+<td>${d[i].selesai||"-"}</td>
+<td class="status-${d[i].status.toLowerCase()}">${d[i].status}</td>
+<td>${role==="admin"?
+`<button onclick="update('${i}','Diproses','${d[i].nama}','${d[i].unit}')">Proses</button>
+<button onclick="update('${i}','Selesai','${d[i].nama}','${d[i].unit}')">Selesai</button>`:"-"}</td>
+</tr>`;
+}
+jBaru.innerText=baru;
+jProses.innerText=proses;
+jSelesai.innerText=selesai;
+});
+}
+
+function exportExcel(){
+fetch(DB+".json").then(r=>r.json()).then(d=>{
+let csv="No,Nama,RM,Unit,Permintaan,Jam Permintaan,Jam Selesai,Status\n",no=1;
+for(let i in d){
+if(bulan.value && d[i].bulan!==bulan.value) continue;
+if(tahun.value && d[i].tahun!=tahun.value) continue;
+csv+=`${no++},${d[i].nama},${d[i].rm},${d[i].unit},${d[i].permintaan},${d[i].jam},${d[i].selesai},${d[i].status}\n`;
+}
+const blob=new Blob([csv],{type:"text/csv"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="Re-Expertise-Radiologi.csv";
+a.click();
+});
+}
+</script>
+
 </body>
 </html>
