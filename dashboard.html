@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Re-Expertise</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h3>Dashboard Re-Expertise</h3>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<section id="formSection">
+  <h4>Form Permintaan Re-Expertise</h4>
+
+  <input id="nama" placeholder="Nama Pasien">
+  <input id="rm" placeholder="No RM">
+  <input id="unit" placeholder="Ranap / Asal Unit">
+  <textarea id="permintaan" placeholder="Permintaan Re-Expertise"></textarea>
+
+  <button onclick="simpanData()">Simpan & Kirim WA</button>
+</section>
+
+<section>
+  <h4>Monitoring Permintaan</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama</th>
+        <th>Unit</th>
+        <th>Permintaan</th>
+        <th>Jam</th>
+        <th>Status</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="tabelData"></tbody>
+  </table>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
